@@ -1,0 +1,8 @@
+v1.0.2 2025/12/11
+- Added release note logic.
+- Added dark mode.
+- Changed "jBridge" table to "Mainframe."
+- Added support for CPSA, COM2 and COM3.
+#RN-SHA256:7ac7d4a71eb320290789655d86ae4a59b0c77dfc9b2697238e404380f3eff021#
+
+

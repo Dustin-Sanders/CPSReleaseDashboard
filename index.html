@@ -1,0 +1,230 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CPS Release Version Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/jquery.dataTables.min.css"/>
+    <link rel="icon" type="image/x-icon" href="images/favicon.png">
+    <script src="assets/jquery-3.7.0.min.js"></script>
+    <script src="assets/jquery.dataTables.min.js"></script>
+    <script src="assets/xlsx.full.min.js"></script>
+    
+    <style>
+        #controls {display: flex;justify-content: center;gap: 10px;margin-bottom: 20px;}
+        #exportBtn {padding: 8px 16px;background: #4CAF50;color: white;border: none;border-radius: 6px;cursor: pointer;}
+        #exportBtn:hover {background: #45a049;}
+        #navButtons button {padding: 10px 20px;margin: 0 10px;background: #007BFF;color: white;border: none;border-radius: 6px;font-size: 14px;cursor: pointer;}
+        #navButtons button:hover {background: #0056b3;}
+        #navButtons {display: flex;justify-content: center;margin-bottom: 20px;}
+        #rowCount {text-align: center;font-weight: bold;margin-bottom: 20px;}
+        #searchInput {padding: 8px;width: 300px;border-radius: 6px;border: 1px solid #ccc;}
+        .container {max-width: 1200px;margin: 40px auto;padding: 20px;background-color: #fff;border-radius: 8px;}
+        .dark-mode .container {background-color: #1e1e1e;}
+        .dark-mode .toggle-container {color: #ccc;}
+        .dark-mode table.dataTable {border: 2px solid #5C5C5C;}
+        .dark-mode tbody tr:nth-child(even) {background-color: #1e1e1e;}
+        .dark-mode tbody tr:nth-child(odd) {background-color: #2a2a2a;}
+        .dark-mode thead th {background-color: #333;}
+        .dark-mode {background-color: #121212;color: #f4f4f4;}
+        .hiddenTable {display: none;}
+        .slider {position: absolute;cursor: pointer;top: 0;left: 0;right: 0;bottom: 0;background-color: #ccc;border-radius: 24px;transition: .4s;}
+        .slider:before {position: absolute;content: "";height: 18px;width: 18px;left: 3px;bottom: 3px;background-color: white;border-radius: 50%;transition: .4s;}
+        .toggle-container {display: flex;flex-direction: column;align-items: center;font-size: 12px;color: #777;}
+        .toggle-switch input {opacity: 0;width: 0;height: 0;}
+        .toggle-switch {position: relative;width: 50px;height: 24px;margin-top: 4px;}
+        body.dark-mode a {color: #9E9EFF;}
+        body.dark-mode a:visited {color: #D0ADF0;}
+        body {font-family: Arial;background-color: #f4f4f4;color: #333;margin: 0;padding: 0;}
+        footer {text-align: center;margin-top: 40px;font-size: 14px;color: #777;}
+        header h1 {flex: 1;text-align: center;margin: 0;}
+        header {display: flex;justify-content: space-between;align-items: center;margin-bottom: 20px;}
+        input:checked + .slider {background-color: #007BFF;}
+        input:checked + .slider:before {transform: translateX(26px);}
+        table.dataTable {border: 2px solid #C9C9C9;width: 100%;margin: 0 auto;}
+        tbody tr:nth-child(even) {background-color: #FFFFFF;}
+        tbody tr:nth-child(odd) {background-color: #EDEDED;}
+        thead th {background-color: #A5A5A5;color: white;}
+    </style>
+    
+    <script>
+    let currentTableId = 'soaTable';
+    
+    function switchTable(tableId) {
+        document.getElementById('soaTable').style.display = 'none';
+        document.getElementById('eadTable').style.display = 'none';
+        document.getElementById('MainframeTable').style.display = 'none';
+        document.getElementById(tableId).style.display = 'table';
+        currentTableId = tableId;
+    
+        if ($.fn.dataTable.isDataTable('#' + tableId)) {
+            $('#' + tableId).DataTable().destroy();
+        }
+        $('#' + tableId).DataTable({ paging: false, info: false, dom: 'lrtip' });
+    }
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#soaTable').DataTable({ paging: false, info: false, dom: 'lrtip' });
+    
+        document.getElementById('searchInput').addEventListener('keyup', function () {
+            $('#' + currentTableId).DataTable().search(this.value).draw();
+        });
+    
+        document.getElementById('exportBtn').addEventListener('click', function () {
+            const wb = XLSX.utils.table_to_book(document.getElementById(currentTableId), { sheet: "Package Versions" });
+            XLSX.writeFile(wb, 'CPSReleaseVersions_' + currentTableId + '.xlsx');
+        });
+    
+        const toggle = document.getElementById('darkToggle');
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            toggle.checked = true;
+        }
+        toggle.addEventListener('change', function () {
+            if (this.checked) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    });
+    </script>
+</head>
+<body>
+   <div class="container">
+       <header>
+           <h1>CPS Release Version Dashboard</h1>
+           <div class="toggle-container">
+               <span>Dark Mode</span>
+               <label class="toggle-switch">
+                   <input type="checkbox" id="darkToggle">
+                   <span class="slider"></span>
+               </label>
+           </div>
+       </header>
+       <div id="navButtons">
+           <button onclick="switchTable('soaTable')">SOA</button>
+           <button onclick="switchTable('eadTable')">EAD</button>
+           <button onclick="switchTable('MainframeTable')">Mainframe</button>
+       </div>
+       <div id="controls">
+           <input type="text" id="searchInput" placeholder="Search all columns...">
+           <button id="exportBtn">Export to Excel</button>
+       </div>
+       <div id="rowCount"></div>
+       <table id="soaTable" class="display">
+           <thead>
+               <tr><th>Application</th><th>Environment</th><th>Package Version</th><th>Work Item URL</th></tr>
+           </thead>
+           <tbody>
+                <tr><td>CPS 382 Web Services</td><td>IUT-ATX</td><td>6.5.0-B1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/634073' target='_blank'>634073</a></td></tr>
+                <tr><td>CPS 382 Web Services</td><td>IUT-BMO</td><td>6.5.0-B1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/634073' target='_blank'>634073</a></td></tr>
+                <tr><td>CPS 382 Web Services</td><td>Prod - ATX</td><td>6.5.0-B1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/634073' target='_blank'>634073</a></td></tr>
+                <tr><td>CPS 382 Web Services</td><td>Prod - BMO</td><td>6.5.0-B1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/634073' target='_blank'>634073</a></td></tr>
+                <tr><td>CPS FSC Right Time Payments (RTP)</td><td>IUT-ATX</td><td>3.6.2.4-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/668881' target='_blank'>668881</a></td></tr>
+                <tr><td>CPS FSC Right Time Payments (RTP)</td><td>IUT-BMO</td><td>3.6.2.4-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/668881' target='_blank'>668881</a></td></tr>
+                <tr><td>CPS FSC Right Time Payments (RTP)</td><td>Prod - ATX</td><td>3.6.2.4-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/668881' target='_blank'>668881</a></td></tr>
+                <tr><td>CPS FSC Right Time Payments (RTP)</td><td>Prod - BMO</td><td>3.6.2.4-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/668881' target='_blank'>668881</a></td></tr>
+                <tr><td>CPS Identity</td><td>IUT-ATX</td><td>1.1.0</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/680226' target='_blank'>680226</a></td></tr>
+                <tr><td>CPS Identity</td><td>IUT-BMO</td><td>1.1.0</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/680226' target='_blank'>680226</a></td></tr>
+                <tr><td>CPS Identity</td><td>Prod - ATX</td><td>1.1.0</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/680226' target='_blank'>680226</a></td></tr>
+                <tr><td>CPS Identity</td><td>Prod - BMO</td><td>1.1.0</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/680226' target='_blank'>680226</a></td></tr>
+                <tr><td>CPS Instant Issue 302 (NJC)</td><td>IUT-ATX</td><td>1.3.0-B3</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/508600' target='_blank'>508600</a></td></tr>
+                <tr><td>CPS Instant Issue 302 (NJC)</td><td>IUT-BMO</td><td>1.3.0-B3</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/508600' target='_blank'>508600</a></td></tr>
+                <tr><td>CPS Instant Issue 302 (NJC)</td><td>Prod - ATX</td><td>1.3.0-B3</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/508600' target='_blank'>508600</a></td></tr>
+                <tr><td>CPS Instant Issue 302 (NJC)</td><td>Prod - BMO</td><td>1.3.0-B3</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/508600' target='_blank'>508600</a></td></tr>
+                <tr><td>CPS Instant Issue JX (CPI)</td><td>IUT-ATX</td><td>1.3.0-B1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/508599' target='_blank'>508599</a></td></tr>
+                <tr><td>CPS Instant Issue JX (CPI)</td><td>IUT-BMO</td><td>1.3.0-B1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/508599' target='_blank'>508599</a></td></tr>
+                <tr><td>CPS Instant Issue JX (CPI)</td><td>Prod - ATX</td><td>1.3.0-B1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/508599' target='_blank'>508599</a></td></tr>
+                <tr><td>CPS Instant Issue JX (CPI)</td><td>Prod - BMO</td><td>1.3.0-B1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/508599' target='_blank'>508599</a></td></tr>
+                <tr><td>CPS OTP Discover</td><td>IUT-ATX</td><td>4.0.6-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS OTP Discover</td><td>IUT-BMO</td><td>4.0.6-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS OTP Discover</td><td>Prod - ATX</td><td>4.0.6-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS OTP Discover</td><td>Prod - BMO</td><td>4.0.6-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS OTP MasterCard</td><td>IUT-ATX</td><td>4.0.7-R.1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS OTP MasterCard</td><td>IUT-BMO</td><td>4.0.7-R.1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS OTP MasterCard</td><td>Prod - ATX</td><td>4.0.7-R.1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS OTP MasterCard</td><td>Prod - BMO</td><td>4.0.7-R.1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS OTP Visa</td><td>IUT-ATX</td><td>4.0.14-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS OTP Visa</td><td>IUT-BMO</td><td>4.0.14-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS OTP Visa</td><td>Prod - ATX</td><td>4.0.14-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS OTP Visa</td><td>Prod - BMO</td><td>4.0.14-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/540114' target='_blank'>540114</a></td></tr>
+                <tr><td>CPS Portal</td><td>IUT-ATX</td><td>4.5.0.0</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/705727' target='_blank'>705727</a></td></tr>
+                <tr><td>CPS Portal</td><td>Prod - ATX</td><td>4.5.0.0</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/705727' target='_blank'>705727</a></td></tr>
+                <tr><td>CPS Portal</td><td>Prod - BMO</td><td>4.5.0.0</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/705727' target='_blank'>705727</a></td></tr>
+                <tr><td>CPS Services Gateway (CPS SG)</td><td>IUT-ATX</td><td>11.1.5-R3</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/706405' target='_blank'>706405</a></td></tr>
+                <tr><td>CPS Services Gateway (CPS SG)</td><td>IUT-BMO</td><td>11.0.21-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/706405' target='_blank'>706405</a></td></tr>
+                <tr><td>CPS Services Gateway (CPS SG)</td><td>Prod - ATX</td><td>11.0.21-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/706405' target='_blank'>706405</a></td></tr>
+                <tr><td>CPS Services Gateway (CPS SG)</td><td>Prod - BMO</td><td>11.0.21-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/706405' target='_blank'>706405</a></td></tr>
+                <tr><td>CPS Tokenization</td><td>IUT-ATX</td><td>1.4.0-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/502972' target='_blank'>502972</a></td></tr>
+                <tr><td>CPS Tokenization</td><td>IUT-BMO</td><td>1.4.0-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/502972' target='_blank'>502972</a></td></tr>
+                <tr><td>CPS Tokenization</td><td>Prod - ATX</td><td>1.4.0-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/502972' target='_blank'>502972</a></td></tr>
+                <tr><td>CPS Tokenization</td><td>Prod - BMO</td><td>1.4.0-R1</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/502972' target='_blank'>502972</a></td></tr>
+                <tr><td>FSC Letters</td><td>IUT-ATX</td><td>1.2.4</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/673048' target='_blank'>673048</a></td></tr>
+                <tr><td>FSC Letters</td><td>Prod - ATX</td><td>1.2.4</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/673048' target='_blank'>673048</a></td></tr>
+                <tr><td>FSC Letters</td><td>Prod - BMO</td><td>1.2.3</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/673048' target='_blank'>673048</a></td></tr>
+                <tr><td>FSC Statements</td><td>IUT-ATX</td><td>1.1.9</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/673046' target='_blank'>673046</a></td></tr>
+                <tr><td>FSC Statements</td><td>Prod - ATX</td><td>1.1.9</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/673046' target='_blank'>673046</a></td></tr>
+                <tr><td>FSC Statements</td><td>Prod - BMO</td><td>1.1.8</td><td><a href='https://dev.azure.com/JHA-3/PassPortEFT/_workitems/edit/673046' target='_blank'>673046</a></td></tr>        </tbody>
+    </table>
+
+    <table id="eadTable" class="display hiddenTable">
+        <thead>
+            <tr><th>Component</th><th>Environment</th><th>Version</th><th>Patch</th></tr>
+        </thead>
+        <tbody>
+                            <tr><td>A98</td><td>Production</td><td>v5.0.00.314819-r5.3</td><td>Patch002 (v5.0.00.002.835467)</td></tr>
+                <tr><td>Atmapp</td><td>Production</td><td>v5.8.00.651988-r5.5</td><td>Patch186 (v5.8.00.186.862419)</td></tr>
+                <tr><td>Atmappfxdcctransaction</td><td>Production</td><td>v5.3.00.766941-r5.3</td><td>Patch013 (v5.3.00.013.766941)</td></tr>
+                <tr><td>Cross</td><td>Production</td><td>v5.0.00.276182-r5.2</td><td>Patch010 (v5.0.00.010.628425)</td></tr>
+                <tr><td>Csp</td><td>Production</td><td>v5.0.00.271786-r5.2</td><td>N/A</td></tr>
+                <tr><td>Easypoint</td><td>Production</td><td>v5.0.00.251653-r5.1</td><td>Patch015 (v5.0.00.015.720534)</td></tr>
+                <tr><td>Efunds</td><td>Production</td><td>v5.1.00.766493-r5.3</td><td>Patch082 (v5.1.00.082.766493)</td></tr>
+                <tr><td>Hyosung</td><td>Production</td><td>v5.1.00.530591-r5.5</td><td>Patch068 (v5.1.00.068.852897)</td></tr>
+                <tr><td>Ibmpin</td><td>Production</td><td>v5.0.00.839833-r5.1</td><td>Patch015 (v5.0.00.015.839750)</td></tr>
+                <tr><td>Interchange</td><td>Production</td><td>v4.1.00.759707-r5.3</td><td>Patch011 (v4.1.00.011.759707)</td></tr>
+                <tr><td>Irp</td><td>Production</td><td>v5.0.00.855846-r5.2</td><td>Patch177 (v5.0.00.177.855846)</td></tr>
+                <tr><td>Officerealtimeframework</td><td>Production</td><td>v4.3.00.388346-r5.1</td><td>Patch009 (v4.3.00.009.651811)</td></tr>
+                <tr><td>Officerealtimeframework</td><td>Production</td><td>v5.0.00.855869-r5.5</td><td>Patch233 (v5.0.00.233.855869)</td></tr>
+                <tr><td>Postforex</td><td>Production</td><td>v2.1.00.333867-r5.2</td><td>Patch040 (v2.1.00.040.825304)</td></tr>
+                <tr><td>Postforexnid</td><td>Production</td><td>v3.1.00.551047-r5.3</td><td>Patch003 (v3.1.00.003.600063)</td></tr>
+                <tr><td>Remotekeysink</td><td>Production</td><td>v5.2.00.471198-r5.3</td><td>Patch068 (v5.2.00.068.861133)</td></tr>
+                <tr><td>Rtfw</td><td>Production</td><td>v5.6.00.854709</td><td>Patch242 (v5.6.00.242.854709)</td></tr>
+                <tr><td>Rtfw</td><td>Production</td><td>v5.6.00.854709</td><td>Patch242 (v5.6.00.242.854709)</td></tr>
+                <tr><td>Ssf</td><td>Production</td><td>v5.3.00.610211-r5.5</td><td>Patch057 (v5.3.00.057.854190)</td></tr>
+                <tr><td>Star</td><td>Production</td><td>v6.1.00.855334-r5.3</td><td>Patch140 (v6.1.00.140.855334)</td></tr>
+                <tr><td>Triton</td><td>Production</td><td>v5.2.00.584095-r5.3</td><td>Patch078 (v5.2.00.078.851093)</td></tr>
+        </tbody>
+    </table>
+
+    <table id="MainframeTable" class="display hiddenTable">
+        <thead>
+            <tr><th>Component</th><th>Environment</th><th>LPAR</th><th>Version</th></tr>
+        </thead>
+        <tbody>
+                            <tr><td>Bridge Manager</td><td>Production</td><td>CPS1</td><td>r1.17.1</td></tr>
+                <tr><td>Bridge Manager</td><td>IUT</td><td>CPSA</td><td>r1.14.1</td></tr>
+                <tr><td>Bridge Manager</td><td>QA</td><td>CPSA</td><td>r1.17.1</td></tr>
+                <tr><td>Engine</td><td>Production</td><td>CPS1</td><td>r1.25.5</td></tr>
+                <tr><td>Engine</td><td>IUT</td><td>CPSA</td><td>r1.25.5</td></tr>
+                <tr><td>Engine</td><td>QA</td><td>CPSA</td><td>r3.1.2</td></tr>
+                <tr><td>Landing Zone</td><td>Production</td><td>COM3</td><td>r1.0.1</td></tr>
+                <tr><td>Landing Zone</td><td>IUT</td><td>COM3</td><td>r1.0.1</td></tr>
+                <tr><td>Log Manager</td><td>Production</td><td>CPS1</td><td>r3.0.1</td></tr>
+                <tr><td>Log Manager</td><td>QA</td><td>CPSA</td><td>r3.1.0</td></tr>
+                <tr><td>MC Recon Report</td><td>Production</td><td>COM2</td><td>r2.1.0</td></tr>
+                <tr><td>MC Recon Report</td><td>QA</td><td>COM2</td><td>r2.1.0</td></tr>
+                <tr><td>VSAM Service</td><td>Production</td><td>COM2</td><td>V1.2.0</td></tr>
+                <tr><td>VSAM Service</td><td>QA</td><td>COM2</td><td>V1.2.0</td></tr>
+        </tbody>
+    </table>
+
+    <footer>
+        CPS Release Version Dashboard | v1.0.2 | Last Updated: 12/15/2025 12:44 PM
+    </footer>
+</div>
+</body>
+</html>
