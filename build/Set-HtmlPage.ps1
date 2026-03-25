@@ -1,28 +1,24 @@
-#v1.0.5
+#Script v1.0.5
 #User Variables
 $MainframeID      = "C204284"
-#$HomePath         = "C:\Users\DuSanders\Documents\VersionDashboardTesting"
 $HomePath         = "$PSScriptRoot"
-$AzurePAT         = "8PfLy8rttmCQZeO7eYl1Dx8yiWflVHnQ7qLrrKYnpUzHPUOeqCPOJQQJ99BBACAAAAAiawS9AAASAZDO3htN"
+$EADPath          = "\\ATXCPSFS01.jhapps.com\BU_SecureData\ASG\Admin\VersionDashboard\EAD"
+$AzurePAT         = "8rEBWHCKYhF92UlJBuhsCwUmWY5ao2hkmOGEkaqrLDQL3hVKzTCKJQQJ99CBACAAAAAiawS9AAASAZDO4TrM"
 $OctoApiKey       = "API-7M1JODCCUSCO1PR1DKYFHFOB9EU8FKT"
 
 #Source Functions
 Get-ChildItem "$HomePath\functions\" -Filter "*.ps1" | ForEach-Object {. $_.FullName}
 
 #Add Release Note
-$Version          = "v1.0.2"
+$Version          = "v1.0.3"
 $ReleaseNotePath  = "$($HomePath | Split-Path)\Release_Note.txt"
 $Note = @"
-$Version 2025/12/11
-- Added release note logic.
-- Added dark mode.
-- Changed "jBridge" table to "Mainframe."
-- Added support for CPSA, COM2 and COM3.
+$Version 2026/01/27
+- Updated EAD rows to include Component, Datacenter, App, Environment, Version and Patch.
 "@
 Add-ReleaseNote -Path $ReleaseNotePath -NoteText $Note
 
 #Retrieve Data
-$EADPath          = "\\atxcpsfs01.jhapps.com\BU_SecureData\ASG\Admin\VersionDashboard\EAD\*.txt"
 $ResultEAD        = Get-EADVersions -Path $EADPath
 $ResultSOA        = Get-OctopusProjectVersions -ApiKey $OctoApiKey
 $WorkItems        = Get-AzureWorkItems -PAT $AzurePAT
@@ -156,7 +152,7 @@ $Body = @'
        <div id="rowCount"></div>
        <table id="soaTable" class="display">
            <thead>
-               <tr><th>Application</th><th>Environment</th><th>Package Version</th><th>Work Item URL</th></tr>
+               <tr><th>Application</th><th>Environment</th><th>Package Version</th><th>Work Item URL</th><th>Date</th></tr>
            </thead>
            <tbody>
 
@@ -172,11 +168,11 @@ $HtmlRowsSOA = $ResultSOA | Sort-Object Project, Environment | ForEach-Object {
     } else {
         "N/A"
     }
-    "                <tr><td>$($_.Project)</td><td>$($_.Environment)</td><td>$($_.PackageVersion)</td><td>$url</td></tr>"
+    "                <tr><td>$($_.Project)</td><td>$($_.Environment)</td><td>$($_.PackageVersion)</td><td>$url</td><td>$($_.Date)</td></tr>"
 }
 
 $HtmlRowsEAD = $ResultEAD | Sort-Object Component | ForEach-Object {
-    "                <tr><td>$($_.Component)</td><td>$($_.Environment)</td><td>$($_.Version)</td><td>$($_.Patch)</td></tr>"
+    "                <tr><td>$($_.Component)</td><td>$($_.Datacenter)</td><td>$($_.App)</td><td>$($_.Environment)</td><td>$($_.Version)</td><td>$($_.Patch)</td></tr>"
 }
 
 $HtmlRowsMainframe = $ResultMainframe | Sort-Object Component | ForEach-Object {
@@ -191,7 +187,7 @@ $HtmlFooter = @"
 
     <table id="eadTable" class="display hiddenTable">
         <thead>
-            <tr><th>Component</th><th>Environment</th><th>Version</th><th>Patch</th></tr>
+            <tr><th>Component</th><th>Datacenter</th><th>App</th><th>Environment</th><th>Version</th><th>Patch</th></tr>
         </thead>
         <tbody>
             $($HtmlRowsEAD -join "`n")
@@ -216,9 +212,10 @@ $HtmlFooter = @"
 "@
 #End Region: Finish HTML Body And Set HTML Footer
 
-#Create web page
+#Create HTML File
 $HtmlContent = $HtmlHeader + $Body + ($HtmlRowsSOA -join "`n") + $HtmlFooter
 Set-Content -Path $HtmlPath -Value $HtmlContent -Encoding UTF8
 
 Write-Host "`nDone!"
-Write-Host "File located here:" $HomePath | Split-Path
+Write-Host "File located here: $($HomePath | Split-Path)"
+Write-Host ""

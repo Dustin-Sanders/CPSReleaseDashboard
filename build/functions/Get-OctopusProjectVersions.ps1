@@ -30,6 +30,7 @@ function Get-OctopusProjectVersions {
                     ProjectDescription = $Project.Description
                     Environment        = $Environment.Name
                     PackageVersion     = $PackageVersion.Version
+                    Date               = ([datetime]$Deployment.Created).ToString("yyyy/MM/dd")
                 }
             }
         }
