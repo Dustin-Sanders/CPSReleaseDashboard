@@ -1,3 +1,7 @@
+v1.0.3 2026/03/30
+- Added parameters.json and build logic.
+#RN-SHA256:d52ea138f92cdeac2e91bd0fd22bdcd7f16eec20331d2a2839371eb7d6250878#
+
 v1.0.3 2026/01/27
 - Updated EAD rows to include Component, Datacenter, App, Environment, Version and Patch.
 #RN-SHA256:8cc0b7305aff764543c62a72e095d79c464e23ddea5e0dc3f37b18a6b26e3e5b#
@@ -8,6 +12,7 @@ v1.0.2 2025/12/11
 - Changed "jBridge" table to "Mainframe."
 - Added support for CPSA, COM2 and COM3.
 #RN-SHA256:7ac7d4a71eb320290789655d86ae4a59b0c77dfc9b2697238e404380f3eff021#
+
 
 
 

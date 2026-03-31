@@ -1,10 +1,26 @@
 #Script v1.0.5
 #User Variables
-$MainframeID      = "C204284"
+#$MainframeID      = "C204284"
+#$HomePath         = "$PSScriptRoot"
+#$EADPath          = "\\ATXCPSFS01\BU_SecureData\ASG\Admin\VersionDashboard\EAD"
+#$AzurePAT         = "8rEBWHCKYhF92UlJBuhsCwUmWY5ao2hkmOGEkaqrLDQL3hVKzTCKJQQJ99CBACAAAAAiawS9AAASAZDO4TrM"
+#$OctoApiKey       = "API-7M1JODCCUSCO1PR1DKYFHFOB9EU8FKT"
+
+#Configuration variables
 $HomePath         = "$PSScriptRoot"
-$EADPath          = "\\ATXCPSFS01.jhapps.com\BU_SecureData\ASG\Admin\VersionDashboard\EAD"
-$AzurePAT         = "8rEBWHCKYhF92UlJBuhsCwUmWY5ao2hkmOGEkaqrLDQL3hVKzTCKJQQJ99CBACAAAAAiawS9AAASAZDO4TrM"
-$OctoApiKey       = "API-7M1JODCCUSCO1PR1DKYFHFOB9EU8FKT"
+$ParametersPath   = Join-Path $HomePath "config\parameters.json"
+
+if (-not (Test-Path -Path $ParametersPath)) {
+    throw "Configuration file not found: $ParametersPath"
+}
+
+$Config           = Get-Content $ParametersPath -Raw | ConvertFrom-Json
+$MainframeID      = $Config.MainframeID
+$EADPath          = $Config.EADPath
+$AzurePAT         = $Config.AzurePAT
+$AzureURL         = $Config.AzureURL
+$OctoURL          = $Config.OctoUrl
+$OctoApiKey       = $Config.OctoApiKey
 
 #Source Functions
 Get-ChildItem "$HomePath\functions\" -Filter "*.ps1" | ForEach-Object {. $_.FullName}
@@ -13,8 +29,8 @@ Get-ChildItem "$HomePath\functions\" -Filter "*.ps1" | ForEach-Object {. $_.Full
 $Version          = "v1.0.3"
 $ReleaseNotePath  = "$($HomePath | Split-Path)\Release_Note.txt"
 $Note = @"
-$Version 2026/01/27
-- Updated EAD rows to include Component, Datacenter, App, Environment, Version and Patch.
+$Version 2026/03/30
+- Added parameters.json and build logic.
 "@
 Add-ReleaseNote -Path $ReleaseNotePath -NoteText $Note
 

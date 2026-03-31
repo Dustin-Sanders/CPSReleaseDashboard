@@ -1,0 +1,8 @@
+{
+  "MainframeID": "C204284",
+  "EADPath"    : "\\\\ATXCPSFS01\\BU_SecureData\\ASG\\Admin\\VersionDashboard\\EAD",
+  "AzurePAT"   : "8rEBWHCKYhF92UlJBuhsCwUmWY5ao2hkmOGEkaqrLDQL3hVKzTCKJQQJ99CBACAAAAAiawS9AAASAZDO4TrM",
+  "AzureURL"   : "https://dev.azure.com/JHA-3/PassPortEFT",
+  "OctoApiKey" : "API-7M1JODCCUSCO1PR1DKYFHFOB9EU8FKT",
+  "OctoUrl"    : "https://octopus.jhapps.com"
+}
