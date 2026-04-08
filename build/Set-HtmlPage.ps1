@@ -1,10 +1,4 @@
 #Script v1.0.5
-#User Variables
-#$MainframeID      = "C204284"
-#$HomePath         = "$PSScriptRoot"
-#$EADPath          = "\\ATXCPSFS01\BU_SecureData\ASG\Admin\VersionDashboard\EAD"
-#$AzurePAT         = "8rEBWHCKYhF92UlJBuhsCwUmWY5ao2hkmOGEkaqrLDQL3hVKzTCKJQQJ99CBACAAAAAiawS9AAASAZDO4TrM"
-#$OctoApiKey       = "API-7M1JODCCUSCO1PR1DKYFHFOB9EU8FKT"
 
 #Configuration variables
 $HomePath         = "$PSScriptRoot"
@@ -26,7 +20,7 @@ $OctoApiKey       = $Config.OctoApiKey
 Get-ChildItem "$HomePath\functions\" -Filter "*.ps1" | ForEach-Object {. $_.FullName}
 
 #Add Release Note
-$Version          = "v1.0.3"
+$Version          = "v1.0.4"
 $ReleaseNotePath  = "$($HomePath | Split-Path)\Release_Note.txt"
 $Note = @"
 $Version 2026/03/30
