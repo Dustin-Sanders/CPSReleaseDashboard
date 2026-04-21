@@ -1,0 +1,8 @@
+{
+  "MainframeId": "A",
+  "EadPath"    : "\\\\B\\C\\D",
+  "AzurePat"   : "E",
+  "AzureUrl"   : "F",
+  "OctoApiKey" : "G",
+  "OctoUrl"    : "H"
+}
